@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Titanic Survival Predictor</title>
+  </head>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 768px;
+      padding: 3rem;
+      border-radius: 16px;
+      box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    h2 {
+      text-align: center;
+      color: blue;
+      font-size: xx-large;
+      margin-bottom: 0.5rem;
+    }
+
+    h3 {
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .input-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    input,
+    select {
+      padding: 1rem;
+      border-radius: 4px;
+    }
+
+    button {
+      grid-column: 1 / span 2;
+      padding: 1rem;
+      background-color: royalblue;
+      color: white;
+      border-radius: 4px;
+      border: none;
+    }
+  </style>
+  <body>
+    <div class="container">
+      <h2>Titanic Survival Prediction</h2>
+      <form onsubmit="submitForm(event)">
+        <div class="input-item">
+          <label for="pclass">Pclass:</label>
+          <select
+            name="Pclass"
+            id="pclass"
+            required
+          >
+            <option value="1">1 (First Class)</option>
+            <option value="2">2 (Second Class)</option>
+            <option value="3">3 (Third Class)</option>
+          </select>
+        </div>
+
+        <div class="input-item">
+          <label for="sexSelect">Sex:</label>
+          <select
+            name="Sex"
+            id="sexSelect"
+          >
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+
+        <div class="input-item">
+          <label for="titleSelect">Title:</label>
+          <select
+            name="Title"
+            id="titleSelect"
+            required
+          ></select>
+        </div>
+
+        <div class="input-item">
+          <label for="age">Age:</label>
+          <input
+            name="Age"
+            id="age"
+            type="number"
+            step="any"
+            required
+            min="1"
+            max="120"
+          />
+        </div>
+
+        <div class="input-item">
+          <label for="sibsp">SibSp:</label>
+          <input
+            name="SibSp"
+            id="sibsp"
+            type="number"
+            required
+          />
+        </div>
+
+        <div class="input-item">
+          <label for="parch">Parch:</label>
+          <input
+            name="Parch"
+            id="parch"
+            type="number"
+            required
+          />
+        </div>
+
+        <div class="input-item">
+          <label for="fare">Fare:</label>
+          <input
+            name="Fare"
+            id="fare"
+            type="number"
+            step="any"
+            required
+          />
+        </div>
+
+        <div class="input-item">
+          <label for="embarked">Embarked:</label>
+          <select
+            name="Embarked"
+            id="embarked"
+          >
+            <option value="S">Southampton</option>
+            <option value="C">Cherbourg</option>
+            <option value="Q">Queenstown</option>
+          </select>
+        </div>
+
+        <button type="submit">Predict</button>
+      </form>
+
+      <h3 id="result"></h3>
+    </div>
+
+    <script>
+      const sexSelect = document.getElementById("sexSelect");
+      const titleSelect = document.getElementById("titleSelect");
+
+      // Gendered and neutral titles
+      const genderedTitles = {
+        male: ["Mr"],
+        female: ["Mrs", "Ms", "Dona"],
+      };
+
+      const neutralTitles = ["Master", "Col", "Rev", "Dr"];
+
+      function updateTitleOptions(selectedSex) {
+        titleSelect.innerHTML = "";
+
+        const options = [...genderedTitles[selectedSex], ...neutralTitles];
+
+        options.forEach((title) => {
+          const option = document.createElement("option");
+          option.value = title;
+          option.textContent = title;
+          titleSelect.appendChild(option);
+        });
+      }
+
+      // Initial load
+      updateTitleOptions(sexSelect.value);
+
+      // Update when sex changes
+      sexSelect.addEventListener("change", (e) => {
+        updateTitleOptions(e.target.value);
+      });
+
+      async function submitForm(event) {
+        event.preventDefault();
+
+        const form = event.target;
+
+        const data = {
+          Pclass: parseInt(form.Pclass.value),
+          Title: form.Title.value,
+          Sex: form.Sex.value,
+          Age: parseFloat(form.Age.value),
+          SibSp: parseInt(form.SibSp.value),
+          Parch: parseInt(form.Parch.value),
+          Fare: parseFloat(form.Fare.value),
+          Embarked: form.Embarked.value,
+        };
+
+        const response = await fetch("http://127.0.0.1:5000/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+        document.getElementById("result").innerText = result.survived === 1 ? "Survived: Yes ✅" : "Survived: No ❌";
+      }
+    </script>
+  </body>
+</html>
